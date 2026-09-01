@@ -29,91 +29,91 @@ function buscarLibroPorId(id) {
     return libros.find(libro => libro.id === id);
 }
 
-// BUSCAR LIBRO (Refactorizado con Clean Code)
+// BUSCAR LIBRO (Refactorizado con KISS y YAGNI)
 function buscar(criterioBusqueda) {
-    let encontrado = false;
     const termino = criterioBusqueda.toLowerCase();
+    const librosEncontrados = libros.filter(libro =>
+        libro.titulo.toLowerCase().includes(termino) ||
+        libro.autor.toLowerCase().includes(termino)
+    );
 
-    for (let i = 0; i < libros.length; i++) {
-        const titulo = libros[i].titulo.toLowerCase();
-        const autor = libros[i].autor.toLowerCase();
-
-        if (titulo.includes(termino) || autor.includes(termino)) {
-            console.log(`${libros[i].id} - ${libros[i].titulo} - ${libros[i].autor}`);
-            
-            if (libros[i].estado === "D") {
-                console.log("Disponible");
-            } else {
-                console.log("Prestado");
-            }
-            encontrado = true;
-        }
-    }
-
-    if (!encontrado) {
+    if (librosEncontrados.length === 0) {
         console.log("No se encontraron libros");
+        return;
     }
+
+    librosEncontrados.forEach(libro => {
+        const estadoTexto = libro.estado === "D" ? "Disponible" : "Prestado";
+        console.log(`${libro.id} - ${libro.titulo} - ${libro.autor}`);
+        console.log(estadoTexto);
+    });
 }
 
-// VER DISPONIBILIDAD (Refactorizado con Clean Code)
+// VER DISPONIBILIDAD (Refactorizado con KISS - Guard Clauses)
 function disponibilidad(id) {
-    const libroEncontrado = buscarLibroPorId(id);
+    const libro = buscarLibroPorId(id);
 
-    if (libroEncontrado === undefined) {
+    if (!libro) {
         console.log("Libro no encontrado");
+        return;
+    }
+
+    if (libro.estado === "D") {
+        console.log(`El libro ${libro.titulo} está disponible`);
     } else {
-        if (libroEncontrado.estado === "D") {
-            console.log(`El libro ${libroEncontrado.titulo} está disponible`);
-        } else {
-            console.log(`El libro ${libroEncontrado.titulo} está prestado a ${libroEncontrado.usuario}`);
-        }
+        console.log(`El libro ${libro.titulo} está prestado a ${libro.usuario}`);
     }
 }
 
-// RENTAR / PRESTAR LIBRO (Refactorizado con Clean Code)
+// RENTAR / PRESTAR LIBRO (Refactorizado con KISS - Guard Clauses)
 function rentar(id, nombreUsuario) {
     const libro = buscarLibroPorId(id);
 
-    if (libro === undefined) {
+    if (!libro) {
         console.log("Libro no encontrado");
-    } else {
-        if (nombreUsuario === null || nombreUsuario === "") {
-            console.log("Debe ingresar el nombre del usuario");
-        } else {
-            if (libro.estado === "D") {
-                libro.estado = "P";
-                libro.usuario = nombreUsuario;
-                console.log(`El libro ${libro.titulo} fue prestado correctamente a ${nombreUsuario}`);
-            } else {
-                console.log("No se puede prestar el libro porque ya está prestado");
-            }
-        }
+        return;
     }
+
+    if (!nombreUsuario || nombreUsuario.trim() === "") {
+        console.log("Debe ingresar el nombre del usuario");
+        return;
+    }
+
+    if (libro.estado !== "D") {
+        console.log("No se puede prestar el libro porque ya está prestado");
+        return;
+    }
+
+    libro.estado = "P";
+    libro.usuario = nombreUsuario;
+    console.log(`El libro ${libro.titulo} fue prestado correctamente a ${nombreUsuario}`);
 }
 
-// DEVOLVER LIBRO (Refactorizado con Clean Code)
+// DEVOLVER LIBRO (Refactorizado con KISS - Guard Clauses)
 function devolver(id) {
     const libro = buscarLibroPorId(id);
 
-    if (libro === undefined) {
+    if (!libro) {
         console.log("Libro no encontrado");
-    } else {
-        if (libro.estado === "P") {
-            console.log(`Devolución realizada. Libro: ${libro.titulo}. Usuario anterior: ${libro.usuario}`);
-            libro.estado = "D";
-            libro.usuario = "";
-        } else {
-            console.log("El libro no puede devolverse porque ya está disponible");
-        }
+        return;
     }
+
+    if (libro.estado !== "P") {
+        console.log("El libro no puede devolverse porque ya está disponible");
+        return;
+    }
+
+    console.log(`Devolución realizada. Libro: ${libro.titulo}. Usuario anterior: ${libro.usuario}`);
+    libro.estado = "D";
+    libro.usuario = "";
 }
 
-// LISTAR TODOS LOS LIBROS (Refactorizado con Clean Code)
+// LISTAR TODOS LOS LIBROS (Refactorizado)
 function listar() {
     console.log("---------- BIBLIOTECA ----------");
-    for (let i = 0; i < libros.length; i++) {
-        console.log(`${libros[i].id} | ${libros[i].titulo} | ${libros[i].autor} | ${libros[i].estado}`);
-    }
+    libros.forEach(libro => {
+        console.log(`${libro.id} | ${libro.titulo} | ${libro.autor} | ${libro.estado}`);
+    });
     console.log("-------------------------------");
 }
 
