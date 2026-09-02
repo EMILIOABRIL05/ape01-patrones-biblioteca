@@ -44,26 +44,31 @@ function disponibilidad(id) {
     }
 }
 
-function rentar(id, nombreUsuario) {
-    const libro = repo.buscarPorId(id);
+// SRP: función que solo valida si el préstamo puede realizarse
+function validarPrestamo(libro, nombreUsuario) {
+    if (!libro) return "Libro no encontrado";
+    if (!nombreEsValido(nombreUsuario)) return "Debe ingresar el nombre del usuario";
+    if (libro.estado !== "D") return "No se puede prestar el libro porque ya está prestado";
+    return null;
+}
 
-    if (!libro) {
-        console.log("Libro no encontrado");
-        return;
-    }
-
-    if (!nombreEsValido(nombreUsuario)) {
-        console.log("Debe ingresar el nombre del usuario");
-        return;
-    }
-
-    if (libro.estado !== "D") {
-        console.log("No se puede prestar el libro porque ya está prestado");
-        return;
-    }
-
+// SRP: función que solo registra el cambio de estado
+function registrarPrestamo(libro, nombreUsuario) {
     libro.estado = "P";
     libro.usuario = nombreUsuario;
+}
+
+// rentar actúa como coordinador: delega validación y registro
+function rentar(id, nombreUsuario) {
+    const libro = repo.buscarPorId(id);
+    const error = validarPrestamo(libro, nombreUsuario);
+
+    if (error) {
+        console.log(error);
+        return;
+    }
+
+    registrarPrestamo(libro, nombreUsuario);
     console.log(`El libro ${libro.titulo} fue prestado correctamente a ${nombreUsuario}`);
 }
 
